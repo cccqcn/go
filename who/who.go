@@ -19,6 +19,10 @@ var random int
 var ranrange int
 var startServerTime string
 
+/**
+启动一个http服务器，用于生成一个随机数，并给每个访问的电脑按ip分配一个随机数，并和初始随机数计算差值并排序。
+启动时候可以传参数（端口，随机数范围），默认参数（9001，100）
+*/
 func main() {
 	flag.Parse()
 	startServerTime = time.Now().Format("2006-01-02 15:04:05")
