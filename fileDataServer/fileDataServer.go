@@ -72,16 +72,21 @@ func homePage(writer http.ResponseWriter, request *http.Request) {
 		if basestr != nil {
 			base = basestr[0]
 		}
+		filetype := ".xml"
+		filetypestr, _ := request.Form["filetype"]
+		if filetypestr != nil {
+			filetype = filetypestr[0]
+		}
 		switch cmd {
 			case "list":
-				getFilelist(writer, base)
+				getFilelist(writer, base, filetype)
 			case "get":
 				file, _ := request.Form["file"]
-				getFile(writer, base, file[0])
+				getFile(writer, base, file[0], filetype)
 			case "save":
 				file, _ := request.Form["file"]
 				xml, _ := request.Form["xml"]
-				saveFile(writer, base, file[0], xml[0])
+				saveFile(writer, base, file[0], xml[0], filetype)
 		}
 	}
 	if slice, found := request.Form["numbers"]; found && len(slice) > 0 {
@@ -89,14 +94,14 @@ func homePage(writer http.ResponseWriter, request *http.Request) {
 	}
 }
 
-func saveFile(writer http.ResponseWriter, base string, file string, xml string) { 
+func saveFile(writer http.ResponseWriter, base string, file string, xml string, filetype string) { 
 	file, _ = GBKToUtf8(file) // 文件名转换为 GBK编码
 	xml, _ = GBKToUtf8(xml) // 文件名转换为 GBK编码
 	var fullpath string
 	if base != "" {
-		fullpath = xmlpath + "\\" + base + "\\" + file + ".xml"
+		fullpath = xmlpath + "\\" + base + "\\" + file + filetype
 	}else{
-		fullpath = xmlpath + "\\" + file + ".xml"
+		fullpath = xmlpath + "\\" + file + filetype
 	}
     fmt.Println("save", getNow(), file)
 	lastIndex := strings.LastIndex(fullpath, "\\")
@@ -131,13 +136,13 @@ func saveFile(writer http.ResponseWriter, base string, file string, xml string) 
 	}*/
 }
 
-func getFile(writer http.ResponseWriter, base string, file string) {  
+func getFile(writer http.ResponseWriter, base string, file string, filetype string) {  
 	file, _ = GBKToUtf8(file) // 文件名转换为 GBK编码
 	var fullpath string
 	if base != "" {
-		fullpath = xmlpath + "\\" + base + "\\" + file + ".xml"
+		fullpath = xmlpath + "\\" + base + "\\" + file + filetype
 	}else{
-		fullpath = xmlpath + "\\" + file + ".xml"
+		fullpath = xmlpath + "\\" + file + filetype
 	}
 	
     fmt.Println("get", getNow(), fullpath)
@@ -153,7 +158,7 @@ func getFile(writer http.ResponseWriter, base string, file string) {
 func getNow()string{
 	return time.Now().Format("2006-01-02 15:04:02")
 }
-func getFilelist(writer http.ResponseWriter, base string) {  
+func getFilelist(writer http.ResponseWriter, base string, filetype string) {  
 	var fullpath string
 	if base != "" {
 		fullpath = xmlpath + "\\" + base
@@ -179,7 +184,7 @@ func getFilelist(writer http.ResponseWriter, base string) {
 		//pathstr = strings.Replace(pathstr, "\\", "/", -1)
     	filenameWithSuffix := relativepath//path.Base(pathstr)
 		fileSuffix := path.Ext(filenameWithSuffix)
-		if fileSuffix == ".xml"{
+		if fileSuffix == filetype{
    			filenameOnly := strings.TrimSuffix(filenameWithSuffix, fileSuffix)
 			fmt.Fprint(writer, filenameOnly + "<br />")
 		}
