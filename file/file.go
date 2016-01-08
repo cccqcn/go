@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"strings"
 	"io/ioutil"
+	"time"
 )
 func main() {
 	flag.Parse()
@@ -70,7 +71,7 @@ func main() {
 		oldf,_ := strconv.ParseFloat(word2, 32)
 		newf := oldf + offset
 		newword := "\"" + strconv.FormatFloat(newf, 'f', precision, 32) + "\""
-		fmt.Print(word + "->" + newword + "\n")
+		fmt.Print(getNow() + "\n" + word + "->" + newword + "\n")
 		return newword
 	}
 	line = wordRx.ReplaceAllStringFunc(line, replacer)
@@ -92,4 +93,8 @@ func main() {
                 fmt.Println(err)
 		return 
 	}
+}
+
+func getNow()string{
+	return time.Now().Format("2006-01-02 15:04:02")
 }
