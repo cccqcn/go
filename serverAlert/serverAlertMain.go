@@ -35,6 +35,8 @@ func main() {
 	sendemail := cfg.MustValue(goconfig.DEFAULT_SECTION, "sendemail")
 	fmt.Println("send email when failed: " + sendemail)
 
+	//	email(false, "119.29.143.99", "8016")	//test
+	//	return
 	ips, err := cfg.GetSection("ips")
 	if err != nil {
 		log.Fatalf("GetSection err：%s", err)
@@ -51,6 +53,7 @@ func main() {
 		m[ip] = true
 	}
 	for {
+		fmt.Println(time.Now())
 		for _, ipportstr := range ips {
 
 			ipport := strings.Split(ipportstr, ":")
@@ -65,11 +68,10 @@ func main() {
 				sendEmail = false
 			}
 			m[ip] = true
-			fmt.Println(time.Now())
 			fmt.Println("sendEmail this time: ", sendEmail)
 			fmt.Println("ping " + ip)
-			pingflag := ping.Ping(ip, 5)
-			fmt.Println("result: " + strconv.FormatBool(pingflag))
+			pingflag := exe3(ping.Ping, ip, 5)
+			fmt.Println("ping result: " + strconv.FormatBool(pingflag))
 
 			if pingflag == false {
 				if sendEmail == true {
@@ -81,7 +83,7 @@ func main() {
 				for _, port := range ports {
 					ipwithport := ip + ":" + port
 					fmt.Println("DialTimeout " + ipwithport)
-					portflag := PortIsOpen(ipwithport, 3)
+					portflag := exe3(PortIsOpen, ipwithport, 3)
 					fmt.Println("PortIsOpen: " + strconv.FormatBool(portflag))
 
 					if portflag == false {
@@ -105,6 +107,19 @@ func main() {
 	//fmt.Println(err)
 	//fmt.Println(string(buf))
 	//socketTest(ipport)
+}
+
+func exe3(call func(param string, t int) bool, param string, t int) bool {
+	flag1 := call(param, t)
+	fmt.Println("call " + param + ":" + strconv.FormatBool(flag1))
+	time.Sleep(time.Duration(1) * time.Second)
+	flag2 := call(param, t)
+	fmt.Println("call " + param + ":" + strconv.FormatBool(flag2))
+	time.Sleep(time.Duration(1) * time.Second)
+	flag3 := call(param, t)
+	fmt.Println("call " + param + ":" + strconv.FormatBool(flag3))
+	time.Sleep(time.Duration(1) * time.Second)
+	return flag1 || flag2 || flag3
 }
 
 //This function is currently not used.
@@ -197,42 +212,47 @@ func email(isPing bool, ip string, port string) {
 		subject = "服务器" + ip + "端口" + port + "无法连接"
 	}
 
-	parameters := struct {
-		From    string
-		To      string
-		Subject string
-		Message string
-	}{
-		from,
-		strings.Join(toEmails, ","),
-		subject,
-		"见邮件主题.",
-	}
+	for i := 0; i < len(toEmails); i++ {
+		toOne := toEmails[i]
+		toOnes := []string{toOne}
+		parameters := struct {
+			From    string
+			To      string
+			Subject string
+			Message string
+		}{
+			from,
+			strings.Join(toOnes, ","),
+			subject,
+			"见邮件主题.",
+		}
 
-	buffer := new(bytes.Buffer)
-	template := template.Must(template.New("emailTemplate").Parse(emailScript()))
-	template.Execute(buffer, &parameters)
+		buffer := new(bytes.Buffer)
+		template := template.Must(template.New("emailTemplate").Parse(emailScript()))
+		template.Execute(buffer, &parameters)
 
-	// Set up authentication information.
-	auth := smtp.PlainAuth(
-		"",
-		username,
-		password,
-		smtpip,
-	)
+		// Set up authentication information.
+		auth := smtp.PlainAuth(
+			"",
+			username,
+			password,
+			smtpip,
+		)
 
-	// Connect to the server, authenticate, set the sender and recipient,
-	// and send the email all in one step.
-	err := smtp.SendMail(
-		smtpport,
-		auth,
-		from,
-		toEmails,
-		buffer.Bytes(),
-	)
-	if err != nil {
-		fmt.Println(err)
-		log.Fatal(err)
+		// Connect to the server, authenticate, set the sender and recipient,
+		// and send the email all in one step.
+		err := smtp.SendMail(
+			smtpport,
+			auth,
+			from,
+			toOnes,
+			buffer.Bytes(),
+		)
+		if err != nil {
+			fmt.Println(err)
+			log.Fatal(err)
+		}
+		time.Sleep(1 * time.Second)
 	}
 	fmt.Println("send OK")
 }
