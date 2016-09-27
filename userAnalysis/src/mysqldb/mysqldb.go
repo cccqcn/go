@@ -39,7 +39,9 @@ func InsertRows(dsn string, sqlstr string, results []*retention.Result) {
 		for i := 1; i <= 10; i++ {
 			sqlone = strings.Replace(sqlone, "@"+strconv.Itoa(i), strconv.Itoa(r.Daycnts[i-1].Cnt), 1)
 		}
-		fmt.Println(sqlone)
+		if retention.TraceFlag == true {
+			fmt.Println(sqlone)
+		}
 		_, err := db.Exec(sqlone)
 		if err != nil {
 			panic(err.Error()) // proper error handling instead of panic in your app

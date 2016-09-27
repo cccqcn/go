@@ -27,7 +27,9 @@ func Output() {
 		}
 		datetime := rr.Date.Format("2006-01-02 15:04:05")
 		date := strings.Split(datetime, " ")[0]
-		fmt.Println(date, dcstr)
+		if TraceFlag == true {
+			fmt.Println(date, dcstr)
+		}
 	}
 }
 func AnalysisRows(rows *sql.Rows) {
